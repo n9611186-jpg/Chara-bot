@@ -58,8 +58,8 @@ function advanceDialog() {
 
 function showChoices() {
     isChoicePhase = true;
-    // НАСТРОЕНО ПОД ТВOЙ НОВЫЙ ФАЙЛ: Смена эмоции на Choice.png перед выбором
-    charaImg.src = "Choice.png"; 
+    // НАСТРОЕНО ПОД НОВОЕ ИМЯ: Смена эмоции на Choicen.png перед выбором
+    charaImg.src = "Choicen.png"; 
     choicesBox.style.display = "flex";
 }
 
