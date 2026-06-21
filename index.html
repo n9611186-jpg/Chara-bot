@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chara Jumpscare Effect</title>
+    <title>Chara Final Cutscene</title>
     <style>
         body {
             margin: 0;
@@ -18,19 +18,13 @@
             user-select: none;
         }
 
-        /* Бешеная тряска экрана */
+        /* Оставляем только тряску и мигание фона */
         .shake-screen {
             animation: shake 0.05s infinite !important;
         }
 
-        /* Агрессивное моргание красно-черным */
         .flash-red {
             animation: flash 0.1s infinite !important;
-        }
-
-        /* ИСПРАВЛЕНО: Равномерное линейное движение на протяжении всех 2 секунд */
-        .zoom-chara {
-            animation: zoomForward 2s linear forwards !important;
         }
 
         @keyframes shake {
@@ -48,12 +42,6 @@
             100% { background-color: #550000; }
         }
 
-        /* ИСПРАВЛЕНО: Картинка увеличивается всего в 1.5 раза. Никакого вылетания на весь экран */
-        @keyframes zoomForward {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.5); }
-        }
-
         .character-container {
             cursor: pointer;
             margin-bottom: 30px;
@@ -68,6 +56,7 @@
             height: auto;
             display: block;
             pointer-events: none;
+            transition: transform 0.05s linear; /* Плавный переход для микро-шагов */
         }
 
         .textbox {
@@ -156,15 +145,14 @@
         let finalStep = 0;
 
         const dialogBox = document.getElementById('dialogBox');
-        const dialogText = document.getElementById('details');
+        const dialogText = document.getElementById('dialogText');
         const choicesBox = document.getElementById('choicesBox');
         const charaImg = document.getElementById('charaImg');
 
         function typeText(text, index = 0, callback = null) {
-            const dt = document.getElementById('dialogText');
             if (index < text.length) {
                 isTyping = true;
-                dt.textContent += text[index];
+                dialogText.textContent += text[index];
                 typingTimeout = setTimeout(() => typeText(text, index + 1, callback), 40);
             } else {
                 isTyping = false;
@@ -178,9 +166,9 @@
                 dialogStarted = true;
                 dialogBox.style.display = "block";
                 choicesBox.style.display = "none";
-                document.getElementById('dialogText').textContent = "";
+                dialogText.textContent = "";
                 currentLine = 0;
-                typeText(phrases[0]); 
+                typeText(phrases); 
             } else {
                 advanceDialog();
             }
@@ -188,11 +176,10 @@
 
         function advanceDialog() {
             if (isChoicePhase) return;
-            const dt = document.getElementById('dialogText');
 
             if (isTyping) {
                 clearTimeout(typingTimeout);
-                dt.textContent = phrases[currentLine];
+                dialogText.textContent = phrases[currentLine];
                 isTyping = false;
                 if (currentLine === phrases.length - 1) showChoices();
                 return;
@@ -201,7 +188,7 @@
             currentLine++;
 
             if (currentLine < phrases.length) {
-                dt.textContent = "";
+                dialogText.textContent = "";
                 typeText(phrases[currentLine], 0, () => {
                     if (currentLine === phrases.length - 1) showChoices();
                 });
@@ -215,7 +202,7 @@
 
         function makeChoice(answer) {
             choicesBox.style.display = "none";
-            document.getElementById('dialogText').textContent = "";
+            dialogText.textContent = "";
             finalBranch = answer;
             finalStep = 1;
 
@@ -237,16 +224,15 @@
                 advanceDialog();
                 return;
             }
-            const dt = document.getElementById('dialogText');
 
             if (isTyping) {
                 clearTimeout(typingTimeout);
                 if (finalBranch === 'erase') {
-                    dt.textContent = "* Именно. Ты отличный партнер.";
+                    dialogText.textContent = "* Именно. Ты отличный партнер.";
                 } else if (finalBranch === 'do_not' && finalStep === 1) {
-                    dt.textContent = "* Нет?...";
+                    dialogText.textContent = "* Нет?...";
                 } else if (finalBranch === 'do_not' && finalStep === 2) {
-                    dt.textContent = "* С каких это пор ты здесь главный?";
+                    dialogText.textContent = "* С каких это пор ты здесь главный?";
                 }
                 isTyping = false;
                 return;
@@ -257,7 +243,7 @@
             } else if (finalBranch === 'do_not') {
                 if (finalStep === 1) {
                     finalStep = 2;
-                    dt.textContent = "";
+                    dialogText.textContent = "";
                     typeText("* С каких это пор ты здесь главный?");
                 } else if (finalStep === 2) {
                     triggerChaos();
@@ -274,16 +260,31 @@
             
             charaImg.src = "Scary.webp";
             
+            // ТВОЯ ИДЕЯ: Плавный пошаговый зум через JavaScript-интервал
+            let currentScale = 1.0;
+            const maxScale = 1.6; // Максимальный красивый размер без вылетания
+            const step = 0.015;  // Шаг увеличения каждые 50 миллисекунд
+            
+            const zoomInterval = setInterval(() => {
+                if (currentScale < maxScale) {
+                    currentScale += step;
+                    charaImg.style.transform = `scale(${currentScale})`;
+                } else {
+                    clearInterval(zoomInterval);
+                }
+            }, 50);
+
             setTimeout(() => {
                 document.body.classList.add("flash-red");
                 document.body.classList.add("shake-screen");
-                charaImg.classList.add("zoom-chara");
             }, 250);
 
+            // Через 2 секунды полностью сбрасываем всё
             setTimeout(() => {
+                clearInterval(zoomInterval); // На всякий случай останавливаем таймер
                 document.body.classList.remove("flash-red");
                 document.body.classList.remove("shake-screen");
-                charaImg.classList.remove("zoom-chara");
+                charaImg.style.transform = "scale(1)"; // Возвращаем исходный размер
                 charaImg.src = "Chara.png"; 
                 document.body.style.backgroundColor = "black";
                 resetGame();
