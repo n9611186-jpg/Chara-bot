@@ -121,7 +121,6 @@
     </div>
 
     <script>
-        // Теперь звук берется прямо из твоего репозитория, где лежит сайт
         const screamSound = new Audio("scream.mp3");
         screamSound.preload = "auto";
 
@@ -165,8 +164,7 @@
                 choicesBox.style.display = "none";
                 dialogText.textContent = "";
                 currentLine = 0;
-                // ИСПРАВЛЕНО: берем строго первую фразу из списка по индексу 0
-                typeText(phrases[0]);
+                typeText(phrases[0]); // Запуск строго первой строчки без каши
             } else {
                 advanceDialog();
             }
@@ -204,7 +202,6 @@
             finalBranch = answer;
             finalStep = 1;
 
-            // Разблокируем аудио через клик по кнопке выбора
             screamSound.volume = 0;
             screamSound.play().then(() => {
                 screamSound.pause();
@@ -260,12 +257,13 @@
             document.body.classList.add("flash-red");
             document.body.classList.add("shake-screen");
 
+            // ТАЙМЕР НАСТРОЕН НА 3 СЕКУНДЫ (3000 мс)
             setTimeout(() => {
                 document.body.classList.remove("flash-red");
                 document.body.classList.remove("shake-screen");
                 document.body.style.backgroundColor = "black";
                 resetGame();
-            }, 3000);
+            }, 3000); 
         }
 
         function resetGame() {
