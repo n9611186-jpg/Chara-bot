@@ -9,20 +9,10 @@ const phrases = [
     "* Давай сотрем этот бесполезный мир..."
 ];
 
-let currentLine = 0;
-let isTyping = false;
-let typingTimeout;
-let dialogStarted = false;
-let isChoicePhase = false;
-let finalBranch = ""; 
-let finalStep = 0;
+let currentLine = 0, isTyping = false, typingTimeout, dialogStarted = false, isChoicePhase = false, finalBranch = "", finalStep = 0;
+const dialogBox = document.getElementById('dialogBox'), dialogText = document.getElementById('dialogText'), choicesBox = document.getElementById('choicesBox'), charaImg = document.getElementById('charaImg');
+const charaBtn = document.getElementById('charaBtn'), eraseBtn = document.getElementById('eraseBtn'), dontBtn = document.getElementById('dontBtn');
 
-const dialogBox = document.getElementById('dialogBox');
-const dialogText = document.getElementById('dialogText');
-const choicesBox = document.getElementById('choicesBox');
-const charaImg = document.getElementById('charaImg');
-
-// Полностью исправленная функция печати букв
 function typeText(text, index, callback) {
     if (index < text.length) {
         isTyping = true;
@@ -50,7 +40,6 @@ function handleCharaClick() {
 
 function advanceDialog() {
     if (isChoicePhase) return;
-
     if (isTyping) {
         clearTimeout(typingTimeout);
         dialogText.textContent = phrases[currentLine];
@@ -58,9 +47,7 @@ function advanceDialog() {
         if (currentLine === phrases.length - 1) showChoices();
         return;
     }
-
     currentLine++;
-
     if (currentLine < phrases.length) {
         dialogText.textContent = "";
         typeText(phrases[currentLine], 0, () => {
@@ -74,8 +61,7 @@ function showChoices() {
     choicesBox.style.display = "flex";
 }
 
-// При выборе ответа обнуляем аудио для телефона
-制造 = function makeChoice(answer) {
+function makeChoice(answer) {
     choicesBox.style.display = "none";
     dialogText.textContent = "";
     finalBranch = answer;
@@ -99,20 +85,14 @@ function handleDialogClick() {
         advanceDialog();
         return;
     }
-
     if (isTyping) {
         clearTimeout(typingTimeout);
-        if (finalBranch === 'erase') {
-            dialogText.textContent = "* Именно. Ты отличный партнер.";
-        } else if (finalBranch === 'do_not' && finalStep === 1) {
-            dialogText.textContent = "* Нет?...";
-        } else if (finalBranch === 'do_not' && finalStep === 2) {
-            dialogText.textContent = "* С каких это пор ты здесь главный?";
-        }
+        if (finalBranch === 'erase') dialogText.textContent = "* Именно. Ты отличный партнер.";
+        else if (finalBranch === 'do_not' && finalStep === 1) dialogText.textContent = "* Нет?...";
+        else if (finalBranch === 'do_not' && finalStep === 2) dialogText.textContent = "* С каких это пор ты здесь главный?";
         isTyping = false;
         return;
     }
-
     if (finalBranch === 'erase' && finalStep === 1) {
         triggerChaos();
     } else if (finalBranch === 'do_not') {
@@ -129,46 +109,30 @@ function handleDialogClick() {
 function triggerChaos() {
     screamSound.volume = 1; 
     screamSound.play().catch(err => console.log(err));
-    
     dialogBox.style.display = "none"; 
     choicesBox.style.display = "none"; 
     charaImg.src = "Scary.webp";
     
-    let scale = 1.0; 
-    const maxScale = 3.5;
-    const step = 0.045; 
-    
-    const zoomInterval = setInterval(() => { 
-        if (scale < maxScale) { 
-            scale += step; 
-            charaImg.style.transform = `scale(${scale})`; 
-        } else { 
-            clearInterval(zoomInterval); 
-        } 
-    }, 50);
-    
+    let scale = 1.0; const maxScale = 3.5, step = 0.045; 
+    const zoomInterval = setInterval(() => { if (scale < maxScale) { scale += step; charaImg.style.transform = `scale(${scale})`; } else { clearInterval(zoomInterval); } }, 50);
     setTimeout(() => { document.body.classList.add("flash-red", "shake-screen"); }, 250);
-    
     setTimeout(() => { 
         clearInterval(zoomInterval); 
-        screamSound.pause(); 
-        screamSound.currentTime = 0; 
+        screamSound.pause(); screamSound.currentTime = 0; 
         document.body.classList.remove("flash-red", "shake-screen"); 
-        charaImg.style.transform = "scale(1)"; 
-        charaImg.src = "Chara.png"; 
+        charaImg.style.transform = "scale(1)"; charaImg.src = "Chara.png"; 
         document.body.style.backgroundColor = "black"; 
         resetGame(); 
     }, 3000);
 }
 
 function resetGame() {
-    currentLine = 0;
-    isTyping = false;
-    dialogStarted = false;
-    isChoicePhase = false;
-    finalBranch = "";
-    finalStep = 0;
-    dialogBox.style.display = "none";
-    choicesBox.style.display = "none";
-    dialogText.textContent = "";
+    currentLine = 0; isTyping = false; dialogStarted = false; isChoicePhase = false; finalBranch = ""; finalStep = 0;
+    dialogBox.style.display = "none"; choicesBox.style.display = "none"; dialogText.textContent = "";
 }
+
+// Связываем кнопки и клики напрямую через скрипт
+charaBtn.addEventListener('click', handleCharaClick);
+dialogBox.addEventListener('click', handleDialogClick);
+eraseBtn.addEventListener('click', () => makeChoice('erase'));
+dontBtn.addEventListener('click', () => makeChoice('do_not'));
