@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chara Dialog</title>
+    <title>Chara Choice</title>
     <style>
         body {
             margin: 0;
@@ -16,11 +16,14 @@
             overflow: hidden;
             font-family: 'Courier New', monospace;
             user-select: none;
-            cursor: pointer; /* Показывает, что кликать можно везде */
+            transition: background-color 0.1s;
         }
 
         .character-container {
+            cursor: pointer;
             margin-bottom: 30px;
+            padding: 10px;
+            -webkit-tap-highlight-color: transparent;
         }
 
         img {
@@ -28,6 +31,7 @@
             width: 140px;
             height: auto;
             display: block;
+            pointer-events: none;
         }
 
         .textbox {
@@ -39,6 +43,8 @@
             padding: 15px;
             box-sizing: border-box;
             display: none;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .text-content {
@@ -50,19 +56,54 @@
             margin: 0;
             white-space: pre-wrap;
         }
+
+        /* Контейнер для кнопок выбора */
+        .choices-container {
+            display: none; /* Изначально скрыт */
+            justify-content: space-around;
+            width: 85%;
+            max-width: 500px;
+            margin-top: 20px;
+        }
+
+        .choice-btn {
+            background-color: black;
+            color: white;
+            border: 2px solid white;
+            padding: 10px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .choice-btn:hover, .choice-btn:active {
+            color: #ff9d00; /* Оранжевый цвет Undertale при наведении/нажатии */
+            border-color: #ff9d00;
+        }
     </style>
 </head>
 <body>
 
-    <div class="character-container">
+    <div class="character-container" onclick="handleCharaClick()">
         <img src="Chara.png" alt="Chara">
     </div>
 
-    <div class="textbox" id="dialogBox">
+    <div class="textbox" id="dialogBox" onclick="advanceDialog()">
         <p class="text-content" id="dialogText"></p>
     </div>
 
+    <!-- Кнопки выбора -->
+    <div class="choices-container" id="choicesBox">
+        <button class="choice-btn" onclick="makeChoice('erase')">[ СТЕРЕТЬ ]</button>
+        <button class="choice-btn" onclick="makeChoice('do_not')">[ НЕ СТЕРЕТЬ ]</button>
+    </div>
+
     <script>
+        // Оригинальный звук скримера Чары
+        const screamSound = new Audio("https://soundboard.com");
+
         const phrases = [
             "* Приветствую.",
             "* Я Чара.",
@@ -75,56 +116,119 @@
         let isTyping = false;
         let typingTimeout;
         let dialogStarted = false;
+        let isChoicePhase = false;
 
         const dialogBox = document.getElementById('dialogBox');
         const dialogText = document.getElementById('dialogText');
+        const choicesBox = document.getElementById('choicesBox');
 
-        function typeText(text, index = 0) {
+        function typeText(text, index = 0, callback = null) {
             if (index < text.length) {
                 isTyping = true;
                 dialogText.textContent += text[index];
-                typingTimeout = setTimeout(() => typeText(text, index + 1), 40);
+                typingTimeout = setTimeout(() => typeText(text, index + 1, callback), 40);
             } else {
                 isTyping = false;
+                if (callback) callback();
             }
         }
 
-        function handleGlobalClick() {
-            // Если диалог еще не начат — запускаем его
+        function handleCharaClick() {
+            if (isChoicePhase) return; // Блокируем клики по Чаре во время выбора
+            
             if (!dialogStarted) {
                 dialogStarted = true;
                 dialogBox.style.display = "block";
+                choicesBox.style.display = "none";
                 dialogText.textContent = "";
                 currentLine = 0;
                 typeText(phrases[0]);
-                return;
+            } else {
+                advanceDialog();
             }
+        }
 
-            // Если текст еще печатается — мгновенно допечатываем строку
+        function advanceDialog() {
+            if (isChoicePhase) return;
+
             if (isTyping) {
                 clearTimeout(typingTimeout);
                 dialogText.textContent = phrases[currentLine];
                 isTyping = false;
+                
+                // Если это была последняя фраза, сразу показываем кнопки
+                if (currentLine === phrases.length - 1) {
+                    showChoices();
+                }
                 return;
             }
 
-            // Переходим к следующей строке
             currentLine++;
 
             if (currentLine < phrases.length) {
                 dialogText.textContent = "";
-                typeText(phrases[currentLine]);
-            } else {
-                // Конец диалога — полностью сбрасываем состояние
-                dialogBox.style.display = "none";
-                dialogText.textContent = "";
-                currentLine = 0;
-                dialogStarted = false;
+                typeText(phrases[currentLine], 0, () => {
+                    // Если допечатали до последней фразы — выводим меню выбора
+                    if (currentLine === phrases.length - 1) {
+                        showChoices();
+                    }
+                });
             }
         }
 
-        // Ловим клик в абсолютно любом месте экрана
-        document.body.addEventListener('click', handleGlobalClick);
+        function showChoices() {
+            isChoicePhase = true;
+            choicesBox.style.display = "flex";
+        }
+
+        function makeChoice(answer) {
+            choicesBox.style.display = "none"; // Прячем кнопки обратно
+            dialogText.textContent = "";
+
+            if (answer === 'erase') {
+                // Ветка: СТЕРЕТЬ
+                typeText("* Именно. Ты отличный партнер.", 0, () => {
+                    setTimeout(() => {
+                        screamSound.play(); // Скример
+                        document.body.style.backgroundColor = "red"; // Красная вспышка
+                        dialogBox.style.display = "none";
+                        
+                        setTimeout(() => {
+                            document.body.style.backgroundColor = "black";
+                            resetGame();
+                        }, 2000);
+                    }, 1000);
+                });
+            } else {
+                // Ветка: НЕ СТЕРЕТЬ
+                typeText("* Нет?...", 0, () => {
+                    setTimeout(() => {
+                        dialogText.textContent = "";
+                        typeText("* С каких это пор ты здесь главный?", 0, () => {
+                            setTimeout(() => {
+                                screamSound.play(); // Скример все равно бьет
+                                document.body.style.backgroundColor = "darkred";
+                                dialogBox.style.display = "none";
+                                
+                                setTimeout(() => {
+                                    document.body.style.backgroundColor = "black";
+                                    resetGame();
+                                }, 2000);
+                            }, 1000);
+                        });
+                    }, 1500);
+                });
+            }
+        }
+
+        function resetGame() {
+            currentLine = 0;
+            isTyping = false;
+            dialogStarted = false;
+            isChoicePhase = false;
+            dialogBox.style.display = "none";
+            choicesBox.style.display = "none";
+        }
     </script>
 </body>
 </html>
