@@ -28,7 +28,7 @@
             animation: flash 0.1s infinite !important;
         }
 
-        /* Моделька Чары летит прямо в экран */
+        /* ИСПРАВЛЕНО: Равномерное линейное движение на протяжении всех 2 секунд */
         .zoom-chara {
             animation: zoomForward 2s linear forwards !important;
         }
@@ -48,10 +48,10 @@
             100% { background-color: #550000; }
         }
 
-        /* Картинка плавно растет во весь экран */
+        /* ИСПРАВЛЕНО: Картинка увеличивается всего в 1.5 раза. Никакого вылетания на весь экран */
         @keyframes zoomForward {
             0% { transform: scale(1); }
-            100% { transform: scale(12); }
+            100% { transform: scale(1.5); }
         }
 
         .character-container {
@@ -156,14 +156,15 @@
         let finalStep = 0;
 
         const dialogBox = document.getElementById('dialogBox');
-        const dialogText = document.getElementById('dialogText');
+        const dialogText = document.getElementById('details');
         const choicesBox = document.getElementById('choicesBox');
         const charaImg = document.getElementById('charaImg');
 
         function typeText(text, index = 0, callback = null) {
+            const dt = document.getElementById('dialogText');
             if (index < text.length) {
                 isTyping = true;
-                dialogText.textContent += text[index];
+                dt.textContent += text[index];
                 typingTimeout = setTimeout(() => typeText(text, index + 1, callback), 40);
             } else {
                 isTyping = false;
@@ -177,9 +178,9 @@
                 dialogStarted = true;
                 dialogBox.style.display = "block";
                 choicesBox.style.display = "none";
-                dialogText.textContent = "";
+                document.getElementById('dialogText').textContent = "";
                 currentLine = 0;
-                typeText(phrases); 
+                typeText(phrases[0]); 
             } else {
                 advanceDialog();
             }
@@ -187,10 +188,11 @@
 
         function advanceDialog() {
             if (isChoicePhase) return;
+            const dt = document.getElementById('dialogText');
 
             if (isTyping) {
                 clearTimeout(typingTimeout);
-                dialogText.textContent = phrases[currentLine];
+                dt.textContent = phrases[currentLine];
                 isTyping = false;
                 if (currentLine === phrases.length - 1) showChoices();
                 return;
@@ -199,7 +201,7 @@
             currentLine++;
 
             if (currentLine < phrases.length) {
-                dialogText.textContent = "";
+                dt.textContent = "";
                 typeText(phrases[currentLine], 0, () => {
                     if (currentLine === phrases.length - 1) showChoices();
                 });
@@ -213,7 +215,7 @@
 
         function makeChoice(answer) {
             choicesBox.style.display = "none";
-            dialogText.textContent = "";
+            document.getElementById('dialogText').textContent = "";
             finalBranch = answer;
             finalStep = 1;
 
@@ -235,15 +237,16 @@
                 advanceDialog();
                 return;
             }
+            const dt = document.getElementById('dialogText');
 
             if (isTyping) {
                 clearTimeout(typingTimeout);
                 if (finalBranch === 'erase') {
-                    dialogText.textContent = "* Именно. Ты отличный партнер.";
+                    dt.textContent = "* Именно. Ты отличный партнер.";
                 } else if (finalBranch === 'do_not' && finalStep === 1) {
-                    dialogText.textContent = "* Нет?...";
+                    dt.textContent = "* Нет?...";
                 } else if (finalBranch === 'do_not' && finalStep === 2) {
-                    dialogText.textContent = "* С каких это пор ты здесь главный?";
+                    dt.textContent = "* С каких это пор ты здесь главный?";
                 }
                 isTyping = false;
                 return;
@@ -254,7 +257,7 @@
             } else if (finalBranch === 'do_not') {
                 if (finalStep === 1) {
                     finalStep = 2;
-                    dialogText.textContent = "";
+                    dt.textContent = "";
                     typeText("* С каких это пор ты здесь главный?");
                 } else if (finalStep === 2) {
                     triggerChaos();
@@ -269,7 +272,6 @@
             dialogBox.style.display = "none";
             choicesBox.style.display = "none";
             
-            // ИСПРАВЛЕНО: Теперь ищет файл Scary.webp в твоей папке
             charaImg.src = "Scary.webp";
             
             setTimeout(() => {
