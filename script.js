@@ -58,6 +58,8 @@ function advanceDialog() {
 
 function showChoices() {
     isChoicePhase = true;
+    // НАСТРОЕНО ПОД ТВOЙ ФАЙЛ: Смена эмоции на Choice.jpg перед выбором
+    charaImg.src = "Choice.jpg"; 
     choicesBox.style.display = "flex";
 }
 
@@ -120,7 +122,8 @@ function triggerChaos() {
         clearInterval(zoomInterval); 
         screamSound.pause(); screamSound.currentTime = 0; 
         document.body.classList.remove("flash-red", "shake-screen"); 
-        charaImg.style.transform = "scale(1)"; charaImg.src = "Chara.png"; 
+        charaImg.style.transform = "scale(1)"; 
+        charaImg.src = "Chara.png"; 
         document.body.style.backgroundColor = "black"; 
         resetGame(); 
     }, 3000);
@@ -131,7 +134,6 @@ function resetGame() {
     dialogBox.style.display = "none"; choicesBox.style.display = "none"; dialogText.textContent = "";
 }
 
-// Связываем кнопки и клики напрямую через скрипт
 charaBtn.addEventListener('click', handleCharaClick);
 dialogBox.addEventListener('click', handleDialogClick);
 eraseBtn.addEventListener('click', () => makeChoice('erase'));
