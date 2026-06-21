@@ -20,7 +20,7 @@
 
         .character-container {
             cursor: pointer;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             transition: transform 0.1s;
         }
         .character-container:active {
@@ -29,21 +29,23 @@
 
         img {
             image-rendering: pixelated;
-            width: 100px;
+            width: 140px; /* Чуть увеличил Чару для красоты */
             height: auto;
             display: block;
         }
 
+        /* Окно Undertale с авто-подстройкой под высоту текста */
         .textbox {
             width: 85%;
             max-width: 500px;
-            height: 100px;
+            min-height: 120px; /* Увеличили высоту, чтобы текст не вылезал */
             border: 4px solid white;
             background-color: black;
             padding: 15px;
             box-sizing: border-box;
             display: none;
             position: relative;
+            cursor: pointer;
         }
 
         .text-content {
@@ -60,7 +62,6 @@
 <body>
 
     <div class="character-container" id="charaBtn">
-        <!-- Сайт возьмет картинку из твоего же репозитория -->
         <img src="Chara.png" alt="Chara">
     </div>
 
@@ -89,13 +90,14 @@
             if (index < text.length) {
                 isTyping = true;
                 dialogText.textContent += text[index];
-                typingTimeout = setTimeout(() => typeText(text, index + 1), 50);
+                typingTimeout = setTimeout(() => typeText(text, index + 1), 40); // Скорость печати
             } else {
                 isTyping = false;
             }
         }
 
         function advanceDialog() {
+            // Если текст еще печатается, то клик мгновенно показывает его полностью
             if (isTyping) {
                 clearTimeout(typingTimeout);
                 dialogText.textContent = phrases[currentLine];
@@ -109,23 +111,28 @@
                 dialogText.textContent = "";
                 typeText(phrases[currentLine]);
             } else {
+                // Конец диалога — закрываем окно
                 dialogBox.style.display = "none";
                 dialogText.textContent = "";
                 currentLine = 0;
             }
         }
 
+        // Клик по Чаре ТОЛЬКО открывает диалог в самый первый раз
         charaBtn.addEventListener('click', () => {
             if (dialogBox.style.display === "none") {
                 dialogBox.style.display = "block";
                 dialogText.textContent = "";
-                typeText(phrases);
-            } else {
-                advanceDialog();
+                currentLine = 0;
+                typeText(phrases[0]);
             }
         });
 
-        dialogBox.addEventListener('click', advanceDialog);
+        // Дальше листаем строго кликами по самому текстовому окну
+        dialogBox.addEventListener('click', (e) => {
+            e.stopPropagation(); // Защита от дублирования кликов
+            advanceDialog();
+        });
     </script>
 </body>
 </html>
