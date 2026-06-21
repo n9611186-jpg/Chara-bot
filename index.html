@@ -164,7 +164,7 @@
                 choicesBox.style.display = "none";
                 dialogText.textContent = "";
                 currentLine = 0;
-                typeText(phrases); 
+                typeText(phrases[0]); 
             } else {
                 advanceDialog();
             }
@@ -248,22 +248,27 @@
         }
 
         function triggerChaos() {
+            // 1. Мгновенно даем команду на старт звука
             screamSound.volume = 1;
             screamSound.play().catch(err => console.log(err));
             
+            // 2. Скрываем диалоги
             dialogBox.style.display = "none";
             choicesBox.style.display = "none";
             
-            document.body.classList.add("flash-red");
-            document.body.classList.add("shake-screen");
+            // 3. Задерживаем вспышки на 250 мс, чтобы они совпали со звуком из динамика
+            setTimeout(() => {
+                document.body.classList.add("flash-red");
+                document.body.classList.add("shake-screen");
+            }, 250);
 
-            // ИСПРАВЛЕНО: Теперь 2.2 секунды (2200 мс) вместо 3 секунд
+            // 4. ТАЙМЕР НАСТРОЕН НА 2 СЕКУНДЫ (2000 мс) общего кошмара
             setTimeout(() => {
                 document.body.classList.remove("flash-red");
                 document.body.classList.remove("shake-screen");
                 document.body.style.backgroundColor = "black";
                 resetGame();
-            }, 2200); 
+            }, 2000); 
         }
 
         function resetGame() {
