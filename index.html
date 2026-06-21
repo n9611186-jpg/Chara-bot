@@ -16,36 +16,29 @@
             overflow: hidden;
             font-family: 'Courier New', monospace;
             user-select: none;
+            cursor: pointer; /* Показывает, что кликать можно везде */
         }
 
         .character-container {
-            cursor: pointer;
             margin-bottom: 30px;
-            transition: transform 0.1s;
-        }
-        .character-container:active {
-            transform: scale(0.95);
         }
 
         img {
             image-rendering: pixelated;
-            width: 140px; /* Чуть увеличил Чару для красоты */
+            width: 140px;
             height: auto;
             display: block;
         }
 
-        /* Окно Undertale с авто-подстройкой под высоту текста */
         .textbox {
             width: 85%;
             max-width: 500px;
-            min-height: 120px; /* Увеличили высоту, чтобы текст не вылезал */
+            min-height: 120px;
             border: 4px solid white;
             background-color: black;
             padding: 15px;
             box-sizing: border-box;
             display: none;
-            position: relative;
-            cursor: pointer;
         }
 
         .text-content {
@@ -61,7 +54,7 @@
 </head>
 <body>
 
-    <div class="character-container" id="charaBtn">
+    <div class="character-container">
         <img src="Chara.png" alt="Chara">
     </div>
 
@@ -81,8 +74,8 @@
         let currentLine = 0;
         let isTyping = false;
         let typingTimeout;
+        let dialogStarted = false;
 
-        const charaBtn = document.getElementById('charaBtn');
         const dialogBox = document.getElementById('dialogBox');
         const dialogText = document.getElementById('dialogText');
 
@@ -90,14 +83,24 @@
             if (index < text.length) {
                 isTyping = true;
                 dialogText.textContent += text[index];
-                typingTimeout = setTimeout(() => typeText(text, index + 1), 40); // Скорость печати
+                typingTimeout = setTimeout(() => typeText(text, index + 1), 40);
             } else {
                 isTyping = false;
             }
         }
 
-        function advanceDialog() {
-            // Если текст еще печатается, то клик мгновенно показывает его полностью
+        function handleGlobalClick() {
+            // Если диалог еще не начат — запускаем его
+            if (!dialogStarted) {
+                dialogStarted = true;
+                dialogBox.style.display = "block";
+                dialogText.textContent = "";
+                currentLine = 0;
+                typeText(phrases[0]);
+                return;
+            }
+
+            // Если текст еще печатается — мгновенно допечатываем строку
             if (isTyping) {
                 clearTimeout(typingTimeout);
                 dialogText.textContent = phrases[currentLine];
@@ -105,34 +108,23 @@
                 return;
             }
 
+            // Переходим к следующей строке
             currentLine++;
 
             if (currentLine < phrases.length) {
                 dialogText.textContent = "";
                 typeText(phrases[currentLine]);
             } else {
-                // Конец диалога — закрываем окно
+                // Конец диалога — полностью сбрасываем состояние
                 dialogBox.style.display = "none";
                 dialogText.textContent = "";
                 currentLine = 0;
+                dialogStarted = false;
             }
         }
 
-        // Клик по Чаре ТОЛЬКО открывает диалог в самый первый раз
-        charaBtn.addEventListener('click', () => {
-            if (dialogBox.style.display === "none") {
-                dialogBox.style.display = "block";
-                dialogText.textContent = "";
-                currentLine = 0;
-                typeText(phrases[0]);
-            }
-        });
-
-        // Дальше листаем строго кликами по самому текстовому окну
-        dialogBox.addEventListener('click', (e) => {
-            e.stopPropagation(); // Защита от дублирования кликов
-            advanceDialog();
-        });
+        // Ловим клик в абсолютно любом месте экрана
+        document.body.addEventListener('click', handleGlobalClick);
     </script>
 </body>
 </html>
