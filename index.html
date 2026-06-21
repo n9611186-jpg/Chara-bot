@@ -18,7 +18,6 @@
             user-select: none;
         }
 
-        /* Оставляем только тряску и мигание фона */
         .shake-screen {
             animation: shake 0.05s infinite !important;
         }
@@ -56,7 +55,7 @@
             height: auto;
             display: block;
             pointer-events: none;
-            transition: transform 0.05s linear; /* Плавный переход для микро-шагов */
+            transition: transform 0.05s linear;
         }
 
         .textbox {
@@ -260,10 +259,9 @@
             
             charaImg.src = "Scary.webp";
             
-            // ТВОЯ ИДЕЯ: Плавный пошаговый зум через JavaScript-интервал
             let currentScale = 1.0;
-            const maxScale = 1.6; // Максимальный красивый размер без вылетания
-            const step = 0.015;  // Шаг увеличения каждые 50 миллисекунд
+            const maxScale = 2.6; // НАСТРОЕНО: максимальный увеличенный размер
+            const step = 0.04;    // НАСТРОЕНО: увеличенный шаг (1.02, 1.06, 1.10...)
             
             const zoomInterval = setInterval(() => {
                 if (currentScale < maxScale) {
@@ -279,12 +277,11 @@
                 document.body.classList.add("shake-screen");
             }, 250);
 
-            // Через 2 секунды полностью сбрасываем всё
             setTimeout(() => {
-                clearInterval(zoomInterval); // На всякий случай останавливаем таймер
+                clearInterval(zoomInterval);
                 document.body.classList.remove("flash-red");
                 document.body.classList.remove("shake-screen");
-                charaImg.style.transform = "scale(1)"; // Возвращаем исходный размер
+                charaImg.style.transform = "scale(1)";
                 charaImg.src = "Chara.png"; 
                 document.body.style.backgroundColor = "black";
                 resetGame();
